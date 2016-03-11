@@ -438,6 +438,15 @@ public final class HttpUrlTest {
     assertEquals("::", HttpUrl.parse("http://[0:0:0:0:0:0:0:0]/").host());
   }
 
+  /** The builder permits square braces but does not require them. */
+  @Test public void hostIPv6Builder() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://example.com/");
+    assertEquals("http://[::1]/", base.newBuilder().host("[::1]").build().toString());
+    assertEquals("http://[::1]/", base.newBuilder().host("[::0001]").build().toString());
+    assertEquals("http://[::1]/", base.newBuilder().host("::1").build().toString());
+    assertEquals("http://[::1]/", base.newBuilder().host("::0001").build().toString());
+  }
+
   @Test public void hostIpv4CanonicalForm() throws Exception {
     assertEquals("255.255.255.255", HttpUrl.parse("http://255.255.255.255/").host());
     assertEquals("1.2.3.4", HttpUrl.parse("http://1.2.3.4/").host());
@@ -799,6 +808,64 @@ public final class HttpUrlTest {
   @Test public void pathSize() throws Exception {
     assertEquals(1, HttpUrl.parse("http://host/").pathSize());
     assertEquals(3, HttpUrl.parse("http://host/a/b/c").pathSize());
+  }
+
+  @Test public void addPathSegments() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://host/a/b/c");
+
+    // Add a string with zero slashes: resulting URL gains one slash.
+    assertEquals("/a/b/c/", base.newBuilder().addPathSegments("").build().encodedPath());
+    assertEquals("/a/b/c/d", base.newBuilder().addPathSegments("d").build().encodedPath());
+
+    // Add a string with one slash: resulting URL gains two slashes.
+    assertEquals("/a/b/c//", base.newBuilder().addPathSegments("/").build().encodedPath());
+    assertEquals("/a/b/c/d/", base.newBuilder().addPathSegments("d/").build().encodedPath());
+    assertEquals("/a/b/c//d", base.newBuilder().addPathSegments("/d").build().encodedPath());
+
+    // Add a string with two slashes: resulting URL gains three slashes.
+    assertEquals("/a/b/c///", base.newBuilder().addPathSegments("//").build().encodedPath());
+    assertEquals("/a/b/c//d/", base.newBuilder().addPathSegments("/d/").build().encodedPath());
+    assertEquals("/a/b/c/d//", base.newBuilder().addPathSegments("d//").build().encodedPath());
+    assertEquals("/a/b/c///d", base.newBuilder().addPathSegments("//d").build().encodedPath());
+    assertEquals("/a/b/c/d/e/f", base.newBuilder().addPathSegments("d/e/f").build().encodedPath());
+  }
+
+  @Test public void addPathSegmentsOntoTrailingSlash() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://host/a/b/c/");
+
+    // Add a string with zero slashes: resulting URL gains zero slashes.
+    assertEquals("/a/b/c/", base.newBuilder().addPathSegments("").build().encodedPath());
+    assertEquals("/a/b/c/d", base.newBuilder().addPathSegments("d").build().encodedPath());
+
+    // Add a string with one slash: resulting URL gains one slash.
+    assertEquals("/a/b/c//", base.newBuilder().addPathSegments("/").build().encodedPath());
+    assertEquals("/a/b/c/d/", base.newBuilder().addPathSegments("d/").build().encodedPath());
+    assertEquals("/a/b/c//d", base.newBuilder().addPathSegments("/d").build().encodedPath());
+
+    // Add a string with two slashes: resulting URL gains two slashes.
+    assertEquals("/a/b/c///", base.newBuilder().addPathSegments("//").build().encodedPath());
+    assertEquals("/a/b/c//d/", base.newBuilder().addPathSegments("/d/").build().encodedPath());
+    assertEquals("/a/b/c/d//", base.newBuilder().addPathSegments("d//").build().encodedPath());
+    assertEquals("/a/b/c///d", base.newBuilder().addPathSegments("//d").build().encodedPath());
+    assertEquals("/a/b/c/d/e/f", base.newBuilder().addPathSegments("d/e/f").build().encodedPath());
+  }
+
+  @Test public void addPathSegmentsWithBackslash() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://host/");
+    assertEquals("/d/e", base.newBuilder().addPathSegments("d\\e").build().encodedPath());
+    assertEquals("/d/e", base.newBuilder().addEncodedPathSegments("d\\e").build().encodedPath());
+  }
+
+  @Test public void addPathSegmentsWithEmptyPaths() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://host/a/b/c");
+    assertEquals("/a/b/c//d/e///f",
+        base.newBuilder().addPathSegments("/d/e///f").build().encodedPath());
+  }
+
+  @Test public void addEncodedPathSegments() throws Exception {
+    HttpUrl base = HttpUrl.parse("http://host/a/b/c");
+    assertEquals("/a/b/c/d/e/%20/",
+        base.newBuilder().addEncodedPathSegments("d/e/%20/\n").build().encodedPath());
   }
 
   @Test public void addPathSegmentDotDoesNothing() throws Exception {

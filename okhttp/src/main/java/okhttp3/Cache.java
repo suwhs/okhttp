@@ -185,7 +185,8 @@ public final class Cache implements Closeable, Flushable {
     return Util.md5Hex(request.url().toString());
   }
 
-  Response get(Request request) {
+
+  public Response get(Request request) {
     String key = urlToKey(request);
     DiskLruCache.Snapshot snapshot;
     Entry entry;
@@ -216,7 +217,7 @@ public final class Cache implements Closeable, Flushable {
     return response;
   }
 
-  private CacheRequest put(Response response) throws IOException {
+  public CacheRequest put(Response response) throws IOException {
     String requestMethod = response.request().method();
 
     if (HttpMethod.invalidatesCache(response.request().method())) {

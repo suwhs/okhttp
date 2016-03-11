@@ -16,7 +16,7 @@
  */
 package okhttp3.internal;
 
-import android.util.Log;
+// import android.util.Log;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -279,7 +279,7 @@ public class Platform {
         newline = newline != -1 ? newline : length;
         do {
           int end = Math.min(newline, i + MAX_LOG_LENGTH);
-          Log.d("OkHttp", message.substring(i, end));
+          // Log.d("OkHttp", message.substring(i, end));
           i = end;
         } while (i < newline);
       }

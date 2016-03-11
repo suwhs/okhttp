@@ -132,7 +132,7 @@ import okio.Source;
  * caching directives. It even offers convenient constants {@link CacheControl#FORCE_NETWORK} and
  * {@link CacheControl#FORCE_CACHE} that address the use cases above.
  */
-public final class Cache implements Closeable, Flushable {
+public class Cache implements Closeable, Flushable {
   private static final int VERSION = 201105;
   private static final int ENTRY_METADATA = 0;
   private static final int ENTRY_BODY = 1;
